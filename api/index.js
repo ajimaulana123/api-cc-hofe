@@ -74,6 +74,8 @@ const getAllNews = async (req, res) => {
 
 const checkNewsForHoax = async (req, res, next) => {
     const { baseUrl } = req.body;
+
+    console.lof(req.body)
     
     try {
         // Ambil halaman utama menggunakan axios
