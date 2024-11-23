@@ -95,7 +95,7 @@ const checkNewsForHoax = async (req, res, next) => {
 
             if (content) {
                 // Kirim POST request ke Flask API
-                const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', content);
+                const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', { "texts": [content] });
 
                 // Kirim response dari Flask API ke client
                 preddict.push(response)
