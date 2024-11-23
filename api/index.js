@@ -75,8 +75,6 @@ const getAllNews = async (req, res) => {
 const checkNewsForHoax = async (req, res, next) => {
     const { baseUrl } = req.body;
 
-    console.lof(req.body)
-    
     try {
         // Ambil halaman utama menggunakan axios
         const { data: mainPageData } = await axios.get(baseUrl, {
@@ -107,12 +105,12 @@ const checkNewsForHoax = async (req, res, next) => {
             };
 
             if (content) {
-                 const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', { "texts": [cleanText(content)] });
+                //  const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', { "texts": [cleanText(content)] });
 
-                 articles.push(response.data)
+                //  articles.push(response.data)
 
                   // Kirim data yang sudah di-scrape
-                 res.json(articles);
+                 res.json(content);
             }
         });
     } catch (error) {
