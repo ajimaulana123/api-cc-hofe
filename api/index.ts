@@ -105,11 +105,10 @@ const checkNewsForHoax = async (req, res, next) => {
             if (content) {
                  const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', { "texts": [cleanText(content)] });
 
-
-                 articles.push(response.data)
-
                   // Kirim data yang sudah di-scrape
-                 res.json(articles);
+                 res.status(2000).json({
+                    prediction: response.data 
+                 });
             }
         });
     } catch (error) {
