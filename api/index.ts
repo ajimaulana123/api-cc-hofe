@@ -86,29 +86,39 @@ const checkNewsForHoax = async (req, res, next) => {
         // Load data HTML dengan cheerio
         const $ = cheerio.load(mainPageData);
         
-        const preddict = [];
+        const articles = [];
 
         // Mengambil elemen artikel dan kontennya
         $('article').each(async (index, element) => {
             const content = $(element).find('p, .entry-content, .post-content, .article-body, .article-text, .content-text, .main-content, .article-content, .news-content, .post-body, .story-body, .content-body, .news-body, .post-entry, .single-post-content, .article-main, .story-content, .entry-body, .body-text, .content-article, .article-excerpt, .article-main-body')
                 .text().trim();
 
-            if (content) {
-                // Kirim POST request ke Flask API
-                const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', { "texts": [content] });
 
-                // Kirim response dari Flask API ke client
-                preddict.push(response)
+            const cleanText = (text) => {
+                return text
+                      .toLowerCase() // Mengubah semua huruf menjadi huruf kecil
+                      .replace(/[^a-z0-9\s]/g, '') // Menghapus semua karakter selain huruf, angka, dan spasi
+                      .replace(/\s+/g, ' ') // Menghapus spasi ganda menjadi satu spasi
+                      .trim(); // Menghapus spasi di awal dan akhir teks
+            };
+
+            if (content) {
+                 const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', { "texts": [cleanText(content)] });
+
+                 console.log(response.data)
+
+                 articles.push(response.data)
+
+                  // Kirim data yang sudah di-scrape
+                 res.json(articles);
             }
         });
-
-        // Kirim data yang sudah di-scrape
-        res.json(preddict);
     } catch (error) {
         console.error('Error scraping latest news:', error);
         res.status(500).json({ message: 'Error scraping latest news', error });
     }
 };
+
 
 app.use("/api/news", getAllNews);
 app.use("/api/news/predict", checkNewsForHoax);
