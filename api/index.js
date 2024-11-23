@@ -107,11 +107,13 @@ const checkNewsForHoax = async (req, res, next) => {
             if (content) {
                 //  const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', { "texts": [cleanText(content)] });
 
-                //  articles.push(response.data)
+                 articles.push(content)
 
                   // Kirim data yang sudah di-scrape
-                 res.json(content);
+                 
             }
+
+            res.json(content);
         });
     } catch (error) {
         console.error('Error scraping latest news:', error);
