@@ -1,8 +1,10 @@
-const express = require("express");
-const app = express();
+require("dotenv").config();
+const http = require("http");
+const app = require("../src/app");
+const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => res.send("Express on Vercel"));
+const server = http.createServer(app);
 
-app.listen(3000, () => console.log("Server ready on port 3000."));
-
-module.exports = app;
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
