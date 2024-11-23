@@ -2,6 +2,8 @@ const express = require("express");
 const cheerio = require('cheerio');
 const axios = require("axios");
 
+const router = express.Router();
+
 const app = express();
 
 /**
@@ -117,8 +119,9 @@ const checkNewsForHoax = async (req, res, next) => {
     }
 };
 
+router.get("/", getAllNews);
+router.post("/predict", checkNewsForHoax);
 
-app.use("/api/news", getAllNews);
-app.use("/api/news/predict", checkNewsForHoax);
+app.use("/api/news", router);
 
 app.listen(3000, () => console.log("Server ready on port 3000."));
