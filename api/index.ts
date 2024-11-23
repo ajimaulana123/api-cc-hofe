@@ -86,20 +86,24 @@ const checkNewsForHoax = async (req, res, next) => {
         // Load data HTML dengan cheerio
         const $ = cheerio.load(mainPageData);
         
-        const articles = [];
+        const preddict = [];
 
         // Mengambil elemen artikel dan kontennya
-        $('article').each((index, element) => {
+        $('article').each(async (index, element) => {
             const content = $(element).find('p, .entry-content, .post-content, .article-body, .article-text, .content-text, .main-content, .article-content, .news-content, .post-body, .story-body, .content-body, .news-body, .post-entry, .single-post-content, .article-main, .story-content, .entry-body, .body-text, .content-article, .article-excerpt, .article-main-body')
                 .text().trim();
 
             if (content) {
-                articles.push({ content });
+                // Kirim POST request ke Flask API
+                const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', content);
+
+                // Kirim response dari Flask API ke client
+                preddict.push(response)
             }
         });
 
         // Kirim data yang sudah di-scrape
-        res.json(articles);
+        res.json(preddict);
     } catch (error) {
         console.error('Error scraping latest news:', error);
         res.status(500).json({ message: 'Error scraping latest news', error });
