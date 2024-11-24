@@ -1,5 +1,5 @@
 import axios from "axios";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 
 /**
  * @description Mengecek berita apakah hoaks atau tidak
