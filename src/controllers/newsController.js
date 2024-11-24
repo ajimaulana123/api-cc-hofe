@@ -64,6 +64,8 @@ const getAllNews = async (req, res) => {
             },
         });
 
+        console.log(latestPageData)
+
         // Scrape berita dari URL terbaru
         const $$ = cheerio.load(latestPageData);
         const articles = [];
@@ -75,24 +77,38 @@ const getAllNews = async (req, res) => {
             const image = $$(element).find('.mh-loop-thumb img').attr('src');
             const content = $$(element).find('.mh-excerpt p').text().trim(); // Pastikan ini sesuai dengan struktur yang ada
 
-            // Ambil klaim yang ada dalam tanda kurung
-            const claimMatch = title.match(/“(.*?)”/);
-            let category = 'valid'; // Default kategori adalah valid
+            function checkHoax(text) {
+              // Menggunakan regular expression untuk mengambil kata dalam tanda kurung
+              const regex = /\[(.*?)\]/;
+              const match = text.match(regex);
+              
+              // Menghapus teks dalam kurung dan menyimpannya di title
+              const title = text.replace(regex, '').trim();
 
-            if (claimMatch) {
-                const claim = claimMatch[1]; // Ambil klaim dari dalam tanda kutip
-                if (!isValidClaim(claim)) {
-                    category = 'hoax'; // Jika klaim tidak valid, beri kategori 'hoax'
+              if (match) {
+                const wordInsideParentheses = match[1].trim();
+                
+                // Cek apakah kata di dalam kurung valid
+                if (wordInsideParentheses === "valid") {
+                  return { statusCategory: "Valid", cleanTitle: title };
+                } else {
+                  return { statusCategory: "Hoax", cleanTitle: title };
                 }
+              } else {
+                return { status: "Tidak ada kata dalam kurung", title: title };
+              }
             }
 
+
+            let { statusCategory, cleanTitle } = checkHoax(title)
+
             articles.push({
-                title,
+                title: cleanTitle,
                 link,
                 date,
                 image,
                 content,
-                category, // Kategori berita
+                category: statusCategory, // Kategori berita
             });
         });
 
