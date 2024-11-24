@@ -3,7 +3,6 @@ import morgan from "morgan";
 import cors from "cors";
 import bodyParser from "body-parser";
 import newsRoutes from "./routes/newsRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
