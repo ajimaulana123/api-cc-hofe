@@ -1,7 +1,5 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import puppeteer from 'puppeteer-core';
-import chromium from 'chrome-aws-lambda';
 
 /**
  * @description Mengecek berita apakah hoaks atau tidak
@@ -77,12 +75,24 @@ const getAllNews = async (req, res) => {
             const image = $$(element).find('.mh-loop-thumb img').attr('src');
             const content = $$(element).find('.mh-excerpt p').text().trim(); // Pastikan ini sesuai dengan struktur yang ada
 
+            // Ambil klaim yang ada dalam tanda kurung
+            const claimMatch = title.match(/“(.*?)”/);
+            let category = 'valid'; // Default kategori adalah valid
+
+            if (claimMatch) {
+                const claim = claimMatch[1]; // Ambil klaim dari dalam tanda kutip
+                if (!isValidClaim(claim)) {
+                    category = 'hoax'; // Jika klaim tidak valid, beri kategori 'hoax'
+                }
+            }
+
             articles.push({
                 title,
                 link,
                 date,
                 image,
                 content,
+                category, // Kategori berita
             });
         });
 
@@ -91,6 +101,18 @@ const getAllNews = async (req, res) => {
         console.error('Error scraping latest news:', error);
         res.status(500).json({ message: 'Error scraping latest news', error });
     }
+};
+
+// Fungsi validasi klaim (sederhana)
+const isValidClaim = (claim) => {
+    // Logika validasi klaim, misalnya dengan memeriksa kata kunci tertentu
+    const invalidKeywords = ['hoaks', 'penipuan', 'tidak benar', 'rekayasa'];
+    for (const keyword of invalidKeywords) {
+        if (claim.toLowerCase().includes(keyword)) {
+            return false;
+        }
+    }
+    return true;
 };
 
 export { checkNewsForHoax, getAllNews };
