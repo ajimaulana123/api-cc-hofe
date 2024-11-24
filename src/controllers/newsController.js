@@ -18,7 +18,9 @@ const checkNewsForHoax = async (req, res, next) => {
                 "Connection": "keep-alive",
                 "Upgrade-Insecure-Requests": "1",
                 "TE": "Trailers",
-                "Referer": "https://www.google.com"
+                "Referer": "https://www.google.com",
+                "DNT": "1",
+                "Cache-Control": "no-cache"
             }
         });
 
