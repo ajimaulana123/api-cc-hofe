@@ -16,7 +16,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/news", newsRoutes);
-app.use("/api/auth", authRoutes);
 
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ message: err.message });
