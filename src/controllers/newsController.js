@@ -1,41 +1,39 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import puppeteer from 'puppeteer';
 
 /**
  * @description Mengecek berita apakah hoaks atau tidak
  */
 const checkNewsForHoax = async (req, res, next) => {
     const { baseUrl } = req.body;
-    
-    try {
-        // Ambil halaman utama menggunakan axios
-        const { data: mainPageData } = await axios.get(baseUrl, {
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Accept-Encoding": "gzip, compress, deflate, br",
-                "Connection": "keep-alive",
-                "Upgrade-Insecure-Requests": "1",
-                "TE": "Trailers",
-                "Referer": "https://www.google.com",
-                "DNT": "1",
-                "Cache-Control": "no-cache"
-            }
-        });
 
-        // Load data HTML dengan cheerio
+    try {
+        // Launch Puppeteer browser
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+
+        // Set user agent and other headers
+        await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36");
+
+        // Navigate to the URL
+        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+
+        // Ambil konten HTML halaman yang sudah dirender
+        const mainPageData = await page.content();
+
+        // Parse HTML dengan cheerio
         const $ = cheerio.load(mainPageData);
-        
+
         const articles = [];
 
         // Fungsi untuk membersihkan teks
         const cleanText = (text) => {
             return text
-                .toLowerCase() // Mengubah semua huruf menjadi huruf kecil
-                .replace(/[^a-z0-9\s]/g, '') // Menghapus semua karakter selain huruf, angka, dan spasi
-                .replace(/\s+/g, ' ') // Menghapus spasi ganda menjadi satu spasi
-                .trim(); // Menghapus spasi di awal dan akhir teks
+                .toLowerCase()
+                .replace(/[^a-z0-9\s]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
         };
 
         // Ambil semua artikel dan proses secara asynchronous
@@ -60,12 +58,14 @@ const checkNewsForHoax = async (req, res, next) => {
         // Kirimkan data artikel yang sudah diproses
         res.json(articles);
 
+        // Close Puppeteer browser
+        await browser.close();
+
     } catch (error) {
         console.error('Error scraping latest news:', error);
         res.status(500).json({ message: 'Error scraping latest news', error });
     }
 };
-
 
 /**
  * @description Mendapatkan semua berita
