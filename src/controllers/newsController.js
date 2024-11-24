@@ -7,69 +7,23 @@ import chromium from 'chrome-aws-lambda';
  * @description Mengecek berita apakah hoaks atau tidak
  */
 const checkNewsForHoax = async (req, res, next) => {
-    const { baseUrl } = req.body;
+    const { text } = req.body;  // Ambil teks dari body request
 
     try {
-        const browser = await puppeteer.launch({
-            executablePath: await chromium.executablePath || '/usr/bin/chromium-browser', // Tambahkan fallback
-            headless: true,
-            args: chromium.args,
-            defaultViewport: chromium.defaultViewport,
+        // Kirimkan teks langsung ke API prediksi
+        const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', {
+            "texts": [text]  // Kirim teks dalam format array
         });
-        
-        const page = await browser.newPage();
 
-        // Set user agent and other headers
-        await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36");
+        // Ambil hasil prediksi dari API response
+        const predictionResults = response.data;
 
-        // Navigate to the URL
-        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-
-        // Get page content after it has rendered
-        const mainPageData = await page.content();
-
-        // Parse HTML with cheerio
-        const $ = cheerio.load(mainPageData);
-
-        const articles = [];
-
-        // Function to clean text
-        const cleanText = (text) => {
-            return text
-                .toLowerCase() // Convert all text to lowercase
-                .replace(/[^a-z0-9\s]/g, '') // Remove all non-alphanumeric characters
-                .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
-                .trim(); // Trim leading and trailing spaces
-        };
-
-        // Process all articles asynchronously
-        const promises = $('article').map(async (index, element) => {
-            const content = $(element).find('p, .entry-content, .post-content, .article-body, .article-text, .content-text, .main-content, .article-content, .news-content, .post-body, .story-body, .content-body, .news-body, .post-entry, .single-post-content, .article-main, .story-content, .entry-body, .body-text, .content-article, .article-excerpt, .article-main-body')
-                .text()
-                .trim();
-
-            if (content) {
-                const cleanedContent = cleanText(content);
-                const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', { "texts": [cleanedContent] });
-
-                // Add prediction results to the articles array
-                return response.data;
-            }
-        }).get(); // `.get()` to return array from map
-
-        // Wait for all articles to be processed
-        const results = await Promise.all(promises);
-        articles.push(...results); // Combine prediction results into the articles array
-
-        // Send the processed articles data as response
-        res.json(articles);
-
-        // Close the Puppeteer browser
-        await browser.close();
+        // Kirim hasil prediksi sebagai response
+        res.json(predictionResults);
 
     } catch (error) {
-        console.error('Error scraping latest news:', error);
-        res.status(500).json({ message: 'Error scraping latest news', error });
+        console.error('Error processing text:', error);
+        res.status(500).json({ message: 'Error processing text', error });
     }
 };
 
