@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from 'chrome-aws-lambda';
 
 /**
  * @description Mengecek berita apakah hoaks atau tidak
@@ -9,8 +10,13 @@ const checkNewsForHoax = async (req, res, next) => {
     const { baseUrl } = req.body;
 
     try {
-        // Launch Puppeteer browser
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+            executablePath: await chromium.executablePath || '/usr/bin/chromium-browser', // Tambahkan fallback
+            headless: true,
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+        });
+        
         const page = await browser.newPage();
 
         // Set user agent and other headers
@@ -19,24 +25,24 @@ const checkNewsForHoax = async (req, res, next) => {
         // Navigate to the URL
         await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
-        // Ambil konten HTML halaman yang sudah dirender
+        // Get page content after it has rendered
         const mainPageData = await page.content();
 
-        // Parse HTML dengan cheerio
+        // Parse HTML with cheerio
         const $ = cheerio.load(mainPageData);
 
         const articles = [];
 
-        // Fungsi untuk membersihkan teks
+        // Function to clean text
         const cleanText = (text) => {
             return text
-                .toLowerCase()
-                .replace(/[^a-z0-9\s]/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
+                .toLowerCase() // Convert all text to lowercase
+                .replace(/[^a-z0-9\s]/g, '') // Remove all non-alphanumeric characters
+                .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+                .trim(); // Trim leading and trailing spaces
         };
 
-        // Ambil semua artikel dan proses secara asynchronous
+        // Process all articles asynchronously
         const promises = $('article').map(async (index, element) => {
             const content = $(element).find('p, .entry-content, .post-content, .article-body, .article-text, .content-text, .main-content, .article-content, .news-content, .post-body, .story-body, .content-body, .news-body, .post-entry, .single-post-content, .article-main, .story-content, .entry-body, .body-text, .content-article, .article-excerpt, .article-main-body')
                 .text()
@@ -46,19 +52,19 @@ const checkNewsForHoax = async (req, res, next) => {
                 const cleanedContent = cleanText(content);
                 const response = await axios.post('https://model-api-hofe-production.up.railway.app/predict', { "texts": [cleanedContent] });
 
-                // Tambahkan hasil ke dalam array articles
+                // Add prediction results to the articles array
                 return response.data;
             }
-        }).get(); // `.get()` untuk mengembalikan array dari map
+        }).get(); // `.get()` to return array from map
 
-        // Tunggu hingga semua artikel diproses
+        // Wait for all articles to be processed
         const results = await Promise.all(promises);
-        articles.push(...results); // Gabungkan hasil prediksi ke dalam array
+        articles.push(...results); // Combine prediction results into the articles array
 
-        // Kirimkan data artikel yang sudah diproses
+        // Send the processed articles data as response
         res.json(articles);
 
-        // Close Puppeteer browser
+        // Close the Puppeteer browser
         await browser.close();
 
     } catch (error) {
