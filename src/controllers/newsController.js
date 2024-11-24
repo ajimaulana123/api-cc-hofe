@@ -1,8 +1,5 @@
 import axios from "axios";
 import cheerio from "cheerio";
-import db from "../config/db.js";
-import emailService from "../services/emailService.js";
-import hoaxDetection from "../services/hoaxDetection.js";
 
 /**
  * @description Mengecek berita apakah hoaks atau tidak
