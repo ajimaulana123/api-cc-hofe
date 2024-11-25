@@ -5,7 +5,7 @@ import bodyParser from "body-parser";
 import newsRoutes from "./routes/newsRoutes.js";
 import authRoutes from "./routes/authRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
-import { connectDB, disconnectDB } from './db.js';
+import { connectDB } from './db.js';
 
 let app = null;
 

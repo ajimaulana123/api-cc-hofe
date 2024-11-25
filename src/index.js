@@ -1,4 +1,3 @@
-import http from "http";
 import app from "./app.js";
 const PORT = 3000;
 import { disconnectDB } from './db.js';
