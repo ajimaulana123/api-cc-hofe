@@ -5,13 +5,9 @@ import bodyParser from "body-parser";
 import newsRoutes from "./routes/newsRoutes.js";
 import authRoutes from "./routes/authRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
-import { connectDB } from './db.js';
+import connectDB from './db.js';
 
-let app = null;
-
-const getApp = () => {
-  if (!app) {
-    app = express();
+const app = express();
 
     connectDB();
     
@@ -33,8 +29,5 @@ const getApp = () => {
     app.use((err, req, res, next) => {
       res.status(err.status || 500).json({ message: err.message });
     });
-  }
-  return app;
-};
 
-export default getApp;
+export default app;

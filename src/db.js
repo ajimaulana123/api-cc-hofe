@@ -1,13 +1,6 @@
 import mongoose from 'mongoose';
 
-let isConnected = false;  
-
 const connectDB = async () => {
-  if (isConnected) {
-    console.log("Database sudah terhubung!");
-    return;
-  }
-
   const DB_URI = 'mongodb://hofe_istrailthy:5c67cfd4cf5e27de6fbb443f12e55fec8b782d55@fhx2u.h.filess.io:27018/hofe_istrailthy'; // Ganti sesuai URI MongoDB
 
   try {
@@ -21,16 +14,4 @@ const connectDB = async () => {
   }
 };
 
-// Fungsi untuk menutup koneksi
-const disconnectDB = async () => {
-  try {
-    await mongoose.disconnect();
-    console.log("Database terputus!");
-
-    isConnected = false;
-  } catch (error) {
-    console.error("Gagal memutuskan koneksi database", error);
-  }
-};
-
-export { connectDB, disconnectDB };
+export default connectDB;
