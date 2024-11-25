@@ -4,26 +4,37 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import newsRoutes from "./routes/newsRoutes.js";
 import authRoutes from "./routes/authRoutes.js"
-import connectDB from './db.js';
+import userRoutes from "./routes/userRoutes.js"
+import { connectDB, disconnectDB } from './db.js';
 
-const app = express();
+let app = null;
 
-connectDB();
+const getApp = () => {
+  if (!app) {
+    app = express();
 
-app.use(express.json());
-app.use(bodyParser.json());
-app.use(cors());
-app.use(morgan("dev"));
+    connectDB();
+    
+    // Setup untuk middlewares dan routes
+    app.use(express.json());
+    app.use(bodyParser.json());
+    app.use(cors());
+    app.use(morgan("dev"));
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+    app.get("/", (req, res) => {
+      res.send("Hello World!");
+    });
 
-app.use("/api/news", newsRoutes);
-app.use("/api/auth", authRoutes);
+    app.use("/api/news", newsRoutes);
+    app.use("/api/auth", authRoutes);
+    app.use("/api/user", userRoutes);
 
-app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({ message: err.message });
-});
+    // Menangani kesalahan umum
+    app.use((err, req, res, next) => {
+      res.status(err.status || 500).json({ message: err.message });
+    });
+  }
+  return app;
+};
 
-export default app;
+export default getApp;

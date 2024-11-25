@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 const SECRET_KEY = 'capstone';
@@ -41,11 +42,16 @@ router.post('/login', async (req, res) => {
     }
 
     // Buat token JWT
-    const token = jwt.sign({ id: user._id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user._id, username: user.username }, SECRET_KEY, { expiresIn: '7d' });
     res.status(200).json({ message: 'Login berhasil', token });
   } catch (error) {
     res.status(500).json({ message: 'Terjadi kesalahan', error });
   }
+});
+
+// Login endpoint
+router.get('/logout', authenticateToken, (req, res) => {
+    res.status(200).send('Successfully logged out');
 });
 
 export default router;
