@@ -5,7 +5,7 @@ import { disconnectDB } from './db.js';
 
 // Fungsi untuk menangani graceful shutdown
 const startServer = async () => {
-  const server = http.createServer(app).listen(PORT, () => {
+  const server = http.createServer(app()).listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });  
 
